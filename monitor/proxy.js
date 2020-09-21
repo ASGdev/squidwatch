@@ -80,6 +80,16 @@ app.post('/link', function (req, res) {
 	res.send();
 })
 
+app.post('/frontier', function (req, res) {
+  	let lk = req.body.link;
+	let dc = req.body.decision;
+	let tid = req.body.workId;
+  	connection.query('INSERT INTO linkset (link, decision, taskid) VALUES (?, ?, ?)', [lk, dc, tid], function (error, results, fields) {
+	  if (error) throw error;
+	});
+	res.send();
+})
+
 app.post('/usage', function (req, res) {
   	let mem = req.body.mem;
 	let cpu = req.body.cpu;

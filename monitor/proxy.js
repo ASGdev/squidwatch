@@ -85,7 +85,7 @@ app.post('/frontier', function (req, res) {
 	let pt = req.body.parent;
 	let dc = req.body.decision;
 	let tid = req.body.workId;
-  	connection.query('INSERT INTO linkset (link, parent, decision, taskid) VALUES (?, ?, ?, ?)', [lk, pt, dc, tid], function (error, results, fields) {
+  	connection.query('INSERT INTO linkset (link, parent, included, taskid) VALUES (?, ?, ?, ?)', [lk, pt, dc, tid], function (error, results, fields) {
 	  if (error) throw error;
 	});
 	res.send();

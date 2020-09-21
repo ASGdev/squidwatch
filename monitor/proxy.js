@@ -82,9 +82,10 @@ app.post('/link', function (req, res) {
 
 app.post('/frontier', function (req, res) {
   	let lk = req.body.link;
+	let pt = req.body.parent;
 	let dc = req.body.decision;
 	let tid = req.body.workId;
-  	connection.query('INSERT INTO linkset (link, decision, taskid) VALUES (?, ?, ?)', [lk, dc, tid], function (error, results, fields) {
+  	connection.query('INSERT INTO linkset (link, parent, decision, taskid) VALUES (?, ?, ?, ?)', [lk, pt, dc, tid], function (error, results, fields) {
 	  if (error) throw error;
 	});
 	res.send();

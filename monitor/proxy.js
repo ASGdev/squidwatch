@@ -91,6 +91,17 @@ app.post('/frontier', function (req, res) {
 	res.send();
 })
 
+app.post('/savepoint', function (req, res) {
+  	let tracker = req.body.tracker;
+	let queue = req.body.queue;
+	let tid = req.body.workId;
+	
+  	connection.query('INSERT INTO savepoints (tracker, queue, taskid) VALUES (?, ?, ?)', [tracker, queue, tid], function (error, results, fields) {
+	  if (error) throw error;
+	});
+	res.send();
+})
+
 app.post('/usage', function (req, res) {
   	let mem = req.body.mem;
 	let cpu = req.body.cpu;

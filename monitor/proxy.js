@@ -7,6 +7,7 @@ var proxy = {
 const express = require('express')
 var bodyParser = require('body-parser')
 const app = express()
+
 const mysql = require('mysql');
 var connection = mysql.createConnection({
   host     : 'localhost',
@@ -14,6 +15,16 @@ var connection = mysql.createConnection({
   password : 'dev',
   database : proxy.database
 });
+
+const { MongoClient } = require("mongodb");
+const mongodbConnData = {
+	host: "localhost",
+	port: "27017",
+	database: "squidwatch-links-pool",
+	collection: "pool"
+}
+
+const mongodbClient = new MongoClient(`mongodb://${mongodbConnData.host}:${mongodbConnData.port}/`);
 
 app.use(bodyParser.json())
 app.use(function(req, res, next){
@@ -31,13 +42,32 @@ app.use(function(req, res, next){
 	}
 })
 
+/* BEGIN Connect to storage databases */
+/* MySQL (main) storage */
 try {
 	connection.connect();
 } catch(e){
-	console.error("Unable to connect to database");
+	console.error("Unable to connect to MySQL database");
 	console.error(e);
 	process.exit(1);
 }
+
+/* MongoDB (staged links pool) */
+try {
+	connectToMDB()
+} catch(e){
+	console.error("Unable to connect to MongoDB database");
+	console.error(e);
+	process.exit(1);
+}
+
+async function connectToMDB(){
+	await mongodbClient.connect()
+	
+	mongodbConnData.collection = mongodbClient.db(mongodbConnData.database).collection(mongodbConnData.collection)
+}
+
+/* END connect to storage databases */
 
 app.post('/error', function (req, res) {
 	let label = req.body.label;
@@ -81,6 +111,7 @@ app.post('/link', function (req, res) {
 })
 
 app.post('/frontier', function (req, res) {
+	console.log(body)
   	let lk = req.body.link;
 	let pt = req.body.parent;
 	let dc = req.body.decision;
@@ -88,6 +119,17 @@ app.post('/frontier', function (req, res) {
   	connection.query('INSERT INTO linkset (link, parent, included, taskid) VALUES (?, ?, ?, ?)', [lk, pt, dc, tid], function (error, results, fields) {
 	  if (error) throw error;
 	});
+	
+	// add non-included link into staged links pool for futur processing
+	if(dc == 0){
+	const doc = { 
+		link: lk,
+		source: pt,
+		workId: tid,
+		schemaVersion: "1"
+	};
+    const result = await mongodbConnData.collection.insertOne(doc);
+	
 	res.send();
 })
 

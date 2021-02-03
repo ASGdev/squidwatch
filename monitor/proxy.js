@@ -1,27 +1,29 @@
-var proxy = {
-	token: "lols",
-	port: 3001,
-	database: "tg"
+const dotenv = require('dotenv');
+dotenv.config();
+
+const proxy = {
+	token: process.env.TOKEN,
+	port: process.env.PORT
 }
 
 const express = require('express')
-var bodyParser = require('body-parser')
+const bodyParser = require('body-parser')
 const app = express()
 
 const mysql = require('mysql');
-var connection = mysql.createConnection({
-  host     : 'localhost',
-  user     : 'root',
-  password : 'dev',
-  database : proxy.database
+let connection = mysql.createConnection({
+  host     : process.env.MYSQL_HOST,
+  user     : process.env.MYSQL_USER,
+  password : process.env.MYSQL_PASSWORD,
+  database : process.env.MYSQL_DATABASE
 });
 
 const { MongoClient } = require("mongodb");
 const mongodbConnData = {
-	host: "localhost",
-	port: "27017",
-	database: "squidwatch-links-pool",
-	collection: "pool"
+	host: process.env.MONGO_HOST,
+	port: process.env.MONGO_PORT,
+	database: process.env.MONGO_DATABASE,
+	collection: process.env.MONGO_COLLECTION
 }
 
 const mongodbClient = new MongoClient(`mongodb://${mongodbConnData.host}:${mongodbConnData.port}/`);
@@ -157,6 +159,6 @@ app.post('/usage', function (req, res) {
 })
 
 app.listen(proxy.port, function () {
-  console.log('Proxy listening on port ' + proxy.port)
+  console.log('Squidwatch listening on port ' + proxy.port)
 })
 
